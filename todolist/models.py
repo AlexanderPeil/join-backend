@@ -35,9 +35,9 @@ class Todo(models.Model):
     due_date = models.DateField(default=date.today)
     title = models.CharField(max_length=100)
     description = models.TextField(max_length=300)
-    status = models.CharField(choices=TODO_STATUS, default='todo')
+    status = models.CharField(max_length=20, choices=TODO_STATUS, default='todo')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    priority = models.CharField(choices=PRIORITIES, default='medium')
+    priority = models.CharField(max_length=10, choices=PRIORITIES, default='medium')
     assigned_to = models.ManyToManyField(Contact, related_name='todos_assigned')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
