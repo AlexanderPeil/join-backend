@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        password = validated_data.pop['password', None]
+        password = validated_data.pop('password', None)
         user = User.objects.create(**validated_data)
         if password is not None:
             user.set_password(password)
@@ -40,7 +40,7 @@ class ContactSerializer(serializers.ModelSerializer):
 class TodoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
-    assigned_to = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), many=True)
+    assigned_to = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), many=True)
     # subtasks = serializers
 
     class Meta:
