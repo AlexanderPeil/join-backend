@@ -41,7 +41,7 @@ class TodoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     assigned_to = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), many=True)
-    # subtasks = serializers
+    subtasks = serializers.PrimaryKeyRelatedField(queryset=Subtask.objects.all(), many=True)
 
     class Meta:
         model = Todo

@@ -8,6 +8,9 @@ class Category(models.Model):
     color = models.CharField(max_length=100)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'({self.id}) {self.name}'
+
 
 class Contact(models.Model):
     firstname = models.CharField(max_length=100)
@@ -15,6 +18,9 @@ class Contact(models.Model):
     email = models.EmailField(max_length=100)
     phone = models.CharField(max_length=100, blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'({self.id}) {self.name}'
 
 
 class Todo(models.Model):
@@ -41,9 +47,15 @@ class Todo(models.Model):
     assigned_to = models.ManyToManyField(Contact, related_name='todos_assigned')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'({self.id}) {self.title}'
+
 
 class Subtask(models.Model):
     title = models.CharField(max_length=100)
     checked = models.BooleanField(default=False)
     todo = models.ForeignKey(Todo, on_delete=models.CASCADE, related_name='subtasks')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'({self.id}) {self.title}'
