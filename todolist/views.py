@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import TodoSerializer, UserSerializer, CategorySerializer
+from .serializers import TodoSerializer, UserSerializer, CategorySerializer, SubtaskSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets
@@ -8,7 +8,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from .models import Todo, Category
+from .models import Todo, Category, Contact, Subtask
 
 
 class TodoViewSet(viewsets.ModelViewSet):
@@ -18,17 +18,25 @@ class TodoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Todo.objects.filter(user=self.request.user).order_by('-created_at')
-
-    # def list(self, request):
-    #     queryset = Todo.objects.all()
-    #     serializer = TodoSerializer(queryset, many=True)
-    #     return Response(serializer.data)
-
     
+
     def create(self, request, *args, **kwargs):
         serializer = TodoSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            todo = serializer.save(user=request.user)
+
+            assigned_to_ids = serializer.validated_data.get('assigned_to', [])
+            if assigned_to_ids:
+                todo.assigned_to.set(assigned_to_ids)
+
+            subtasks_data = request.data.get('subtasks', [])
+            for subtask_data in subtasks_data:
+                subtask_serializer = SubtaskSerializer(data=subtask_data, context={'request': request})
+                if subtask_serializer.is_valid():
+                    subtask_serializer.save(todo=todo, user=request.user)
+                else:
+                    return Response(subtask_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -45,16 +53,7 @@ class TodoViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-    
 
-    def perform_create(self, serializer):
-        category_name = self.request.data.get('category_name')
-        if category_name:
-            category, created = Category.objects.get_or_create(name=category_name, defaults={'user': self.request.user})
-            serializer.save(user=self.request.user, category=category)
-        else:
-            serializer.save(user=self.request.user)
-    
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -62,21 +61,6 @@ class TodoViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'You have no permission to delete this task.'}, status=status.HTTP_403_FORBIDDEN)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    
-    # def perform_destroy(self, instance):
-    #     category = instance.category
-    #     super().perform_destroy(instance)
-    #     if not category.todo_set.exists():
-    #         category.delete()
-
-
-class CategoryViewSet(viewsets.ModelViewSet):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    serializer_class = CategorySerializer
-
-
 
 
 

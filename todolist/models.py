@@ -20,7 +20,7 @@ class Contact(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'({self.id}) {self.name}'
+        return f'({self.id}) {self.firstname} {self.lastname}'
 
 
 class Todo(models.Model):
@@ -42,7 +42,7 @@ class Todo(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(max_length=300)
     status = models.CharField(max_length=20, choices=TODO_STATUS, default='todo')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     priority = models.CharField(max_length=10, choices=PRIORITIES, default='medium')
     assigned_to = models.ManyToManyField(Contact, related_name='todos_assigned')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
