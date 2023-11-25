@@ -16,13 +16,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from todolist.views import LoginView, RegisterView, LogoutView, TodoViewSet
+from todolist.views import (
+    LoginView,
+    RegisterView,
+    LogoutView,
+    TodoViewSet,
+    CategoryViewSet,
+    ContactViewSet
+)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('register/', RegisterView.as_view(), name='register'),
-    path('login/', LoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('summary/', TodoViewSet.as_view({'get': 'list'}), name='summary'),
-    path('add-task/', TodoViewSet.as_view({'post': 'create'}), name='add-task'),
+    path("admin/", admin.site.urls),
+    path("register/", RegisterView.as_view(), name="register"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("tasks/", TodoViewSet.as_view({"get": "list"}), name="tasks"),
+    path("add-task/", TodoViewSet.as_view({"post": "create"}), name="add-task"),
+    path("categories/", CategoryViewSet.as_view({"get": "list"}), name="category-list"),
+    path("contacts/", ContactViewSet.as_view({"get": "list"}), name="contact-list"),
 ]
