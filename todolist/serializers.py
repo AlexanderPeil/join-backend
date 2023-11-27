@@ -49,10 +49,8 @@ class ContactSerializer(serializers.ModelSerializer):
 
 class TodoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
-    assigned_to = serializers.PrimaryKeyRelatedField(
-        queryset=Contact.objects.all(), many=True
-    )
+    category = CategorySerializer(read_only=True)
+    assigned_to = ContactSerializer(many=True, read_only=True)
     subtasks = SubtaskSerializer(many=True, required=False, read_only=True)
 
     class Meta:

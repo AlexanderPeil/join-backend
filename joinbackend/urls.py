@@ -22,13 +22,16 @@ from todolist.views import (
     LogoutView,
     TodoViewSet,
     CategoryViewSet,
-    ContactViewSet
+    ContactViewSet,
+    LoggedUserView
 )
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
+    path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
+    path("signup/", RegisterView.as_view(), name="signup"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("tasks/", TodoViewSet.as_view({"get": "list"}), name="tasks"),
     path("add-task/", TodoViewSet.as_view({"post": "create"}), name="add-task"),
