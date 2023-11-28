@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 from todolist.views import (
     LoginView,
     RegisterView,
@@ -26,6 +27,12 @@ from todolist.views import (
     LoggedUserView
 )
 
+
+router = DefaultRouter()
+router.register(r'tasks', TodoViewSet, basename='task')
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'contacts', ContactViewSet, basename='contact')
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", RegisterView.as_view(), name="register"),
@@ -33,8 +40,17 @@ urlpatterns = [
     path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
     path("signup/", RegisterView.as_view(), name="signup"),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path("tasks/", TodoViewSet.as_view({"get": "list"}), name="tasks"),
-    path("add-task/", TodoViewSet.as_view({"post": "create"}), name="add-task"),
-    path("categories/", CategoryViewSet.as_view({"get": "list"}), name="category-list"),
-    path("contacts/", ContactViewSet.as_view({"get": "list"}), name="contact-list"),
-]
+] + router.urls
+
+# urlpatterns = [
+#     path("admin/", admin.site.urls),
+#     path("register/", RegisterView.as_view(), name="register"),
+#     path("login/", LoginView.as_view(), name="login"),
+#     path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
+#     path("signup/", RegisterView.as_view(), name="signup"),
+#     path("logout/", LogoutView.as_view(), name="logout"),
+#     path("tasks/", TodoViewSet.as_view({"get": "list"}), name="tasks"),
+#     path("add-task/", TodoViewSet.as_view({"post": "create"}), name="add-task"),
+#     path("categories/", CategoryViewSet.as_view({"get": "list"}), name="category-list"),
+#     path("contacts/", ContactViewSet.as_view({"get": "list"}), name="contact-list"),
+# ]

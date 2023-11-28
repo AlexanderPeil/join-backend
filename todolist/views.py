@@ -65,6 +65,8 @@ class TodoViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
+
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.user != request.user:
