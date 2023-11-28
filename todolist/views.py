@@ -82,12 +82,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = CategorySerializer
+    queryset = Category.objects.all()
 
 
 class ContactViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ContactSerializer
+    queryset = Contact.objects.all()
 
 
 class RegisterView(APIView):
