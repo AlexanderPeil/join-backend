@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from .serializers import (
     TodoSerializer,
     UserSerializer,
     CategorySerializer,
     SubtaskSerializer,
-    ContactSerializer
+    ContactSerializer,
+    TodoDetailSerializer
 )
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -25,30 +26,26 @@ class TodoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Todo.objects.filter(user=self.request.user).order_by("-created_at")
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = TodoDetailSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        todo = get_object_or_404(Todo, pk=kwargs['pk'], user=request.user)
+        serializer = TodoDetailSerializer(todo, context={'request': request})
+        return Response(serializer.data)
+
+
     def create(self, request, *args, **kwargs):
-        serializer = TodoSerializer(data=request.data)
+        serializer = TodoSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            todo = serializer.save(user=request.user)
-
-            assigned_to_ids = serializer.validated_data.get("assigned_to", [])
-            if assigned_to_ids:
-                todo.assigned_to.set(assigned_to_ids)
-
-            subtasks_data = request.data.get("subtasks", [])
-            for subtask_data in subtasks_data:
-                subtask_serializer = SubtaskSerializer(
-                    data=subtask_data, context={"request": request}
-                )
-                if subtask_serializer.is_valid():
-                    subtask_serializer.save(todo=todo, user=request.user)
-                else:
-                    return Response(
-                        subtask_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                    )
+            serializer.save(user=request.user)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)

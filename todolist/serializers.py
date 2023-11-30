@@ -31,7 +31,8 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["name", "color"]
+        fields = ["name", "color", "id"]
+        read_only_fields = ["id"]
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
@@ -45,14 +46,29 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = ["id", "firstname", "lastname", "email", "phone", "color"]
+        read_only_fields = ["id"]
 
 
 class TodoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-    category = CategorySerializer(read_only=True)
-    assigned_to = ContactSerializer(many=True, read_only=True)
-    subtasks = SubtaskSerializer(many=True, required=False, read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    assigned_to = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), many=True)
+    subtasks = serializers.PrimaryKeyRelatedField(queryset=Subtask.objects.all(), many=True)
+
 
     class Meta:
         model = Todo
         fields = "__all__"
+        # fields = ['id', 'title', 'description', 'status', 'created_at', 'user', 'category', 'priority', 'due_date', 'assigned_to', 'subtasks']
+        # read_only_fields = ['user', 'created_at']
+
+
+class TodoDetailSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    assigned_to = ContactSerializer(many=True, read_only=True)
+    subtasks = SubtaskSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Todo
+        fields = '__all__'
+
