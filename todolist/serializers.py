@@ -53,7 +53,7 @@ class TodoSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     assigned_to = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), many=True)
-    subtasks = serializers.PrimaryKeyRelatedField(queryset=Subtask.objects.all(), many=True)
+    subtasks = SubtaskSerializer(many=True, required=False)
 
 
     class Meta:
@@ -61,6 +61,20 @@ class TodoSerializer(serializers.ModelSerializer):
         fields = "__all__"
         # fields = ['id', 'title', 'description', 'status', 'created_at', 'user', 'category', 'priority', 'due_date', 'assigned_to', 'subtasks']
         # read_only_fields = ['user', 'created_at']
+
+    def create(self, validated_data):
+        assigned_to_data = validated_data.pop('assigned_to', [])
+        subtasks_data = validated_data.pop('subtasks', [])
+
+        user = self.context['request'].user
+        todo = Todo.objects.create(user=user, **validated_data)
+
+        todo.assigned_to.set(assigned_to_data)
+
+        for subtask_data in subtasks_data:
+            Subtask.objects.create(todo=todo, user=user, **subtask_data)
+
+        return todo
 
 
 class TodoDetailSerializer(serializers.ModelSerializer):

@@ -37,14 +37,14 @@ class TodoViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-    def create(self, request, *args, **kwargs):
-        serializer = TodoSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save(user=request.user)
+    # def create(self, request, *args, **kwargs):
+    #     serializer = TodoSerializer(data=request.data, context={'request': request})
+    #     if serializer.is_valid():
+    #         serializer.save(user=request.user)
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     def update(self, request, *args, **kwargs):
