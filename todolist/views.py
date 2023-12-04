@@ -48,19 +48,41 @@ class TodoViewSet(viewsets.ModelViewSet):
 
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
+        partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
         if instance.user != request.user:
             return Response(
-                {"detail": "You have no permission to edit this task."},
+                {"detail": "You do not have permission to edit this task."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        # Aktualisieren Sie nur die nicht-verschachtelten Felder mit dem Serializer
+        non_nested_data = {key: value for key, value in request.data.items() if key not in ['category', 'assigned_to', 'subtasks']}
+        serializer = self.get_serializer(instance, data=non_nested_data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+
+        # Aktualisieren Sie verschachtelte Felder manuell
+        if 'category' in request.data:
+            # Aktualisieren Sie die Kategorie
+            category_id = request.data['category']
+            instance.category = Category.objects.get(id=category_id)
+        
+        if 'assigned_to' in request.data:
+            # Aktualisieren Sie die zugewiesenen Kontakte
+            instance.assigned_to.clear()
+            for contact_id in request.data['assigned_to']:
+                contact = Contact.objects.get(id=contact_id)
+                instance.assigned_to.add(contact)
+
+        instance.save()  # Speichern Sie die Instanz nach den manuellen Änderungen
+
         return Response(serializer.data)
+
+
+    def perform_update(self, serializer):
+        serializer.save()
 
 
 
