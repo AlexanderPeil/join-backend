@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from rest_framework_nested.routers import NestedSimpleRouter
+from rest_framework_nested import routers
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from todolist.views import (
     LoginView,
@@ -24,7 +26,8 @@ from todolist.views import (
     TodoViewSet,
     CategoryViewSet,
     ContactViewSet,
-    LoggedUserView
+    LoggedUserView,
+    SubtaskViewSet
 )
 
 
@@ -33,14 +36,21 @@ router.register(r'tasks', TodoViewSet, basename='task')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'contacts', ContactViewSet, basename='contact')
 
+# Genesteter Router für Subtasks
+tasks_router = routers.NestedSimpleRouter(router, r'tasks', lookup='task')
+tasks_router.register(r'subtasks', SubtaskViewSet, basename='subtask')
+
+# URLPatterns
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("register/", RegisterView.as_view(), name="register"),
-    path("login/", LoginView.as_view(), name="login"),
+    path('admin/', admin.site.urls),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
     path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
-    path("signup/", RegisterView.as_view(), name="signup"),
-    path("logout/", LogoutView.as_view(), name="logout"),
-] + router.urls
+    path('signup/', RegisterView.as_view(), name='signup'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('', include(router.urls)),  # Haupt-Router URLs
+    path('', include(tasks_router.urls)),  # Genestete Router URLs
+]
 
 # urlpatterns = [
 #     path("admin/", admin.site.urls),

@@ -36,17 +36,6 @@ class TodoViewSet(viewsets.ModelViewSet):
         serializer = TodoDetailSerializer(todo, context={'request': request})
         return Response(serializer.data)
 
-
-    # def create(self, request, *args, **kwargs):
-    #     serializer = TodoSerializer(data=request.data, context={'request': request})
-    #     if serializer.is_valid():
-    #         serializer.save(user=request.user)
-
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -57,26 +46,22 @@ class TodoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Aktualisieren Sie nur die nicht-verschachtelten Felder mit dem Serializer
         non_nested_data = {key: value for key, value in request.data.items() if key not in ['category', 'assigned_to', 'subtasks']}
         serializer = self.get_serializer(instance, data=non_nested_data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        # Aktualisieren Sie verschachtelte Felder manuell
         if 'category' in request.data:
-            # Aktualisieren Sie die Kategorie
             category_id = request.data['category']
             instance.category = Category.objects.get(id=category_id)
         
         if 'assigned_to' in request.data:
-            # Aktualisieren Sie die zugewiesenen Kontakte
             instance.assigned_to.clear()
             for contact_id in request.data['assigned_to']:
                 contact = Contact.objects.get(id=contact_id)
                 instance.assigned_to.add(contact)
 
-        instance.save()  # Speichern Sie die Instanz nach den manuellen Änderungen
+        instance.save()  
 
         return Response(serializer.data)
 
@@ -127,6 +112,24 @@ class ContactViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+    
+
+class SubtaskViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubtaskSerializer
+    queryset = Subtask.objects.all()
+
+    def get_queryset(self):
+        task_id = self.kwargs.get('task_pk')
+        if task_id is not None:
+            return Subtask.objects.filter(todo__id=task_id)  
+        return super().get_queryset()
+  
+
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
 
 
 class RegisterView(APIView):
