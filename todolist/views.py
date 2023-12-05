@@ -125,7 +125,28 @@ class SubtaskViewSet(viewsets.ModelViewSet):
         if task_id is not None:
             return Subtask.objects.filter(todo__id=task_id)  
         return super().get_queryset()
-  
+    
+
+    def create(self, request, *args, **kwargs):
+        task_id = self.kwargs.get('task_pk')
+        if task_id is None:
+            return Response({"detail": "Task ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        subtasks_data = request.data
+        if not isinstance(subtasks_data, list):
+            subtasks_data = [subtasks_data]  
+
+        created_subtasks = []
+        for subtask_data in subtasks_data:
+            subtask_data['todo'] = task_id
+            subtask_data['user'] = request.user.id
+            serializer = self.get_serializer(data=subtask_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            created_subtasks.append(serializer.data)
+
+        return Response(created_subtasks, status=status.HTTP_201_CREATED)
+
 
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)

@@ -39,7 +39,7 @@ class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
         fields = "__all__"
-        extra_kwargs = {"todo": {"read_only": True}, "user": {"read_only": True}}
+        # extra_kwargs = {"todo": {"read_only": True}, "user": {"read_only": True}}
 
 
 class ContactSerializer(serializers.ModelSerializer):

@@ -36,11 +36,9 @@ router.register(r'tasks', TodoViewSet, basename='task')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'contacts', ContactViewSet, basename='contact')
 
-# Genesteter Router für Subtasks
 tasks_router = routers.NestedSimpleRouter(router, r'tasks', lookup='task')
 tasks_router.register(r'subtasks', SubtaskViewSet, basename='subtask')
 
-# URLPatterns
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('register/', RegisterView.as_view(), name='register'),
@@ -48,8 +46,8 @@ urlpatterns = [
     path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
     path('signup/', RegisterView.as_view(), name='signup'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('', include(router.urls)),  # Haupt-Router URLs
-    path('', include(tasks_router.urls)),  # Genestete Router URLs
+    path('', include(router.urls)),  
+    path('', include(tasks_router.urls)),  
 ]
 
 # urlpatterns = [
