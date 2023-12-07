@@ -27,7 +27,8 @@ from todolist.views import (
     CategoryViewSet,
     ContactViewSet,
     LoggedUserView,
-    SubtaskViewSet
+    SubtaskViewSet,
+    GuestLoginView
 )
 
 
@@ -43,6 +44,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('guest-login/', GuestLoginView.as_view(), name='guest-login'),
     path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
     path('signup/', RegisterView.as_view(), name='signup'),
     path('logout/', LogoutView.as_view(), name='logout'),

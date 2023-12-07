@@ -14,13 +14,43 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 from .models import Todo, Category, Contact, Subtask
 
 
+class GuestLoginView(APIView):
+    def post(self, request):
+        guest_username = 'guest'
+
+        try:
+            guest_user = User.objects.get(username=guest_username)
+        except User.DoesNotExist:
+            guest_user = User.objects.create_user(username=guest_username, password='guest_password')
+
+        token, created = Token.objects.get_or_create(user=guest_user)
+
+        return Response({
+            "token": token.key,
+            "user_id": guest_user.pk,
+            "email": guest_user.email
+        })
+
+
+class ReadOnlyGuestPermission(permissions.BasePermission):
+    """
+    Berechtigungsklasse, die nur Lesezugriff für Gastbenutzer erlaubt.
+    """
+
+    def has_permission(self, request, view):
+        if request.user.username == 'guest':
+            return request.method in permissions.SAFE_METHODS
+        return True
+
+
 class TodoViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = TodoSerializer
 
     def get_queryset(self):
@@ -84,16 +114,25 @@ class TodoViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
+
+    def get_queryset(self): 
+        return Category.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ContactViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = ContactSerializer
     queryset = Contact.objects.all()
+
+    def get_queryset(self):
+        return Contact.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -116,7 +155,7 @@ class ContactViewSet(viewsets.ModelViewSet):
 
 class SubtaskViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = SubtaskSerializer
     queryset = Subtask.objects.all()
 
@@ -196,3 +235,4 @@ class LoggedUserView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+    
