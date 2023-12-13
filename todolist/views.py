@@ -20,6 +20,26 @@ from .models import Todo, Category, Contact, Subtask
 
 
 class GuestLoginView(APIView):
+    """
+    API view for guest user login.
+
+    This view handles the creation or retrieval of a guest user and generates an
+    authentication token for the guest session. It is intended to provide limited access
+    or functionality to users who haven't registered or logged in with a personal account.
+
+    Methods:
+    - post: Handles the POST request to create or retrieve a guest user. It checks if a
+      user with the username 'guest' exists. If not, it creates a new user with this
+      username and a predefined password. Then, it retrieves or creates a token for
+      this guest user and returns the token key, user id, and email in the response.
+
+    Note:
+    - The password for the guest user is hardcoded, which may not be secure. For a
+      production environment, consider implementing a more secure method of handling
+      guest user authentication.
+    - This implementation assumes a simplistic guest user setup. Depending on the
+      application's requirements, you might need a more sophisticated approach.
+    """
     def post(self, request):
         guest_username = 'guest'
 
@@ -39,9 +59,24 @@ class GuestLoginView(APIView):
 
 class ReadOnlyGuestPermission(permissions.BasePermission):
     """
-    Berechtigungsklasse, die nur Lesezugriff für Gastbenutzer erlaubt.
-    """
+    Custom permission class for read-only access for guest users.
 
+    This permission class is used to restrict the actions that guest users can perform.
+    Guest users are identified by the username 'guest' and are only allowed to perform
+    'safe' HTTP methods (GET, HEAD, OPTIONS). This ensures that guest users can only
+    read data and are not allowed to modify it.
+
+    Methods:
+    - has_permission: Determines whether the request should be granted permission.
+      If the user is a guest user (username 'guest'), it checks if the request method
+      is a safe method. If so, permission is granted. Otherwise, it's denied.
+      For all other users, permission is granted by default.
+
+    Note:
+    - This permission class should be used in views where guest users are allowed access
+      but should be restricted to read-only operations.
+    """
+    
     def has_permission(self, request, view):
         if request.user.username == 'guest':
             return request.method in permissions.SAFE_METHODS
@@ -49,6 +84,33 @@ class ReadOnlyGuestPermission(permissions.BasePermission):
 
 
 class TodoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Todo instances.
+
+    This ViewSet provides 'list', 'create', 'retrieve', 'update', and 'delete' actions for Todo instances.
+    It uses TokenAuthentication and custom permissions to ensure that only authenticated users
+    can modify data, and guest users have read-only access.
+
+    Authentication and Permissions:
+    - Authentication: TokenAuthentication is used to authenticate users.
+    - Permissions: IsAuthenticated and ReadOnlyGuestPermission are applied for permission checks.
+
+    Serializer Class:
+    - TodoSerializer is used for serialization and deserialization of Todo instances.
+
+    Overridden Methods:
+    - get_queryset: Filters the Todo instances by the current user and orders them by creation date.
+    - list: Lists all Todo instances for the current user.
+    - retrieve: Retrieves a specific Todo instance. Returns 404 if not found or not owned by the user.
+    - update: Updates a Todo instance. Custom logic is included for handling nested relationships.
+      Returns a 403 Forbidden response if the user is not the owner of the Todo.
+    - destroy: Deletes a Todo instance. Returns a 403 Forbidden response if the user is not the owner.
+
+    Note:
+    - The custom logic in 'update' method ensures that only the owner of a Todo can modify it
+      and handles updating nested relationships like 'category' and 'assigned_to'.
+    - In 'destroy' method, it's ensured that only the owner of a Todo can delete it.
+    """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = TodoSerializer
@@ -113,6 +175,30 @@ class TodoViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Category instances.
+
+    This ViewSet provides the standard 'list', 'create', 'retrieve', 'update', and 'delete'
+    actions for Category instances. It is configured to allow only authenticated users
+    to modify data, and guest users are given read-only access.
+
+    Authentication and Permissions:
+    - Authentication: Uses TokenAuthentication to authenticate users.
+    - Permissions: Applies IsAuthenticated and ReadOnlyGuestPermission to ensure proper access control.
+
+    Serializer Class:
+    - Uses CategorySerializer for serialization and deserialization of Category instances.
+
+    Methods:
+    - get_queryset: Overrides the default queryset to return categories belonging to the current user.
+    - perform_create: Overrides the default create behavior to set the 'user' field to the current user.
+
+    Note:
+    - The ViewSet ensures that users can only access and manipulate their own Category instances,
+      enhancing data privacy and security.
+    - The use of custom permissions allows for a flexible access control, suitable for both registered
+      and guest users.
+    """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = CategorySerializer
@@ -126,6 +212,31 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class ContactViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Contact instances.
+
+    This ViewSet offers 'list', 'create', 'retrieve', 'update', and 'delete' actions for Contact instances.
+    It employs token-based authentication and custom permissions to ensure secure access control, allowing
+    only authenticated users to modify data, while guest users have read-only access.
+
+    Authentication and Permissions:
+    - Authentication: Uses TokenAuthentication for user authentication.
+    - Permissions: IsAuthenticated and ReadOnlyGuestPermission are used to control access.
+
+    Serializer Class:
+    - Utilizes ContactSerializer for serialization and deserialization of Contact instances.
+
+    Methods:
+    - get_queryset: Overrides to return contacts associated with the current authenticated user.
+    - perform_create: Overrides to assign the newly created contact to the current user.
+    - update: Custom update method. Ensures that only the owner of the contact can edit it.
+      If the user is not the owner, a 403 Forbidden response is returned.
+
+    Note:
+    - The update method includes a check to ensure that the user attempting to update a contact
+      is indeed the owner of that contact. This adds an additional layer of security and data
+      integrity to the application.
+    """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = ContactSerializer
@@ -153,8 +264,32 @@ class ContactViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
         
     
-# Edit subtasks while editing a task
 class SubtaskViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Subtask instances.
+
+    This ViewSet provides the standard actions ('list', 'create', 'retrieve', 'update', 
+    'delete') for Subtask instances. It includes custom logic for filtering subtasks 
+    by tasks and handling batch creation of subtasks.
+
+    Authentication and Permissions:
+    - Authentication: Uses TokenAuthentication for authenticating users.
+    - Permissions: IsAuthenticated and ReadOnlyGuestPermission are applied for access control.
+
+    Serializer Class:
+    - Utilizes SubtaskSerializer for serialization and deserialization of Subtask instances.
+
+    Methods:
+    - get_queryset: Overrides to return subtasks related to a specific task, identified by 'task_pk'.
+    - create: Custom creation method allowing for the creation of one or more subtasks. 
+      Requires 'task_pk' to associate the new subtasks with a specific task.
+    - partial_update: Inherits the default behavior for partial updates of subtask instances.
+
+    Note:
+    - The create method supports batch creation of subtasks and requires each subtask to be 
+      associated with a specific task. This is crucial for maintaining the integrity of 
+      task-subtask relationships in the application.
+    """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
     serializer_class = SubtaskSerializer
@@ -194,6 +329,28 @@ class SubtaskViewSet(viewsets.ModelViewSet):
 
 
 class RegisterView(APIView):
+    """
+    API view for user registration.
+
+    This view handles the creation of new user accounts. It does not require any authentication
+    or permissions as it's intended for users who are not yet registered.
+
+    Authentication and Permissions:
+    - Authentication: None. This view is accessible without any authentication.
+    - Permissions: None. This view does not require any permissions, allowing access to any visitor.
+
+    Methods:
+    - post: Handles POST requests for user registration. It uses the UserSerializer to validate
+      and create new user accounts. It checks if an account with the provided email already exists
+      and if not, proceeds to create a new user. Returns a 400 Bad Request response if the email
+      already exists or if the data is invalid.
+
+    Note:
+    - This view should be exposed carefully, considering security implications of allowing
+      unauthenticated user registration.
+    - The view assumes that the email is a unique identifier for users. If your application logic
+      differs, you might need to adjust the uniqueness checks accordingly.
+    """
     permission_classes = []
     authentication_classes = []
 
@@ -210,6 +367,24 @@ class RegisterView(APIView):
 
 
 class LoginView(ObtainAuthToken):
+    """
+    API view for user login.
+
+    This view extends Django Rest Framework's ObtainAuthToken to provide token-based authentication
+    for users. It handles the login process, validating user credentials and returning an authentication
+    token along with user details.
+
+    Methods:
+    - post: Handles POST requests for user login. It uses the ObtainAuthToken's serializer to validate
+      user credentials. Upon successful validation, it retrieves or creates a new authentication token
+      for the user and returns this token along with the user's ID and email.
+
+    Note:
+    - This view is essential for the token-based authentication mechanism in the application. The token
+      returned should be used in the Authorization header for subsequent requests requiring authentication.
+    - Ensure that the token mechanism is securely implemented, especially in production environments, to
+      protect user data and access.
+    """
     def post(self, request):
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
@@ -221,6 +396,24 @@ class LoginView(ObtainAuthToken):
 
 
 class LogoutView(APIView):
+    """
+    API view for user logout.
+
+    This view handles the logout process by invalidating the user's authentication token.
+    It requires the user to be authenticated with a valid token to access this endpoint.
+
+    Authentication and Permissions:
+    - Authentication: Uses TokenAuthentication to authenticate users.
+    - Permissions: IsAuthenticated to ensure only authenticated users can access this view.
+
+    Methods:
+    - post: Handles POST requests for user logout. It deletes the user's auth token,
+      effectively logging them out of the system. Returns a 200 OK status on successful logout.
+
+    Note:
+    - This view is crucial for securely managing user sessions in token-based authentication systems.
+      Ensure that tokens are properly invalidated and cannot be reused after logout.
+    """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -230,6 +423,26 @@ class LogoutView(APIView):
     
 
 class LoggedUserView(APIView):
+    """
+    API view for retrieving the currently logged-in user's details.
+
+    This view is used to obtain information about the user that is currently authenticated. 
+    It supports both Basic and Token authentication methods.
+
+    Authentication and Permissions:
+    - Authentication: Supports both BasicAuthentication and TokenAuthentication.
+    - Permissions: IsAuthenticated to ensure only authenticated users can access this view.
+
+    Methods:
+    - get: Handles GET requests. It serializes the currently authenticated user's data
+      using the UserSerializer and returns this data in the response.
+
+    Note:
+    - This view is especially useful for front-end applications that need to retrieve 
+      the profile or other details of the currently logged-in user.
+    - Care should be taken to ensure that sensitive information is not exposed unnecessarily
+      through this endpoint.
+    """
     authentication_classes = [BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
