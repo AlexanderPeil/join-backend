@@ -70,7 +70,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, '../join-frontend')
+            os.path.join(BASE_DIR, 'join-frontend')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
