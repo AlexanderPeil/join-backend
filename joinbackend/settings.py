@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cm&3vz&z)&n4g7z2h^1e_=t!^$+pfof56@7ufy+5f8%h^@#*(j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -70,7 +70,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'join-frontend')
+            os.path.join(BASE_DIR.parent, 'join-frontend')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
