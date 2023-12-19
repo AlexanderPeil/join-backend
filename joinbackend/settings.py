@@ -34,7 +34,7 @@ ALLOWED_HOSTS = [
 
 CORS_ALLOWED_ORIGINS = ['http://localhost:4200']
 
-CSRF_TRUSTED_ORIGINS = ['https://*.pythonanywhere.com']
+CSRF_TRUSTED_ORIGINS = ['alex85.pythonanywhere.com']
 
 # Application definition
 
