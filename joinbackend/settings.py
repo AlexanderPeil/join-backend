@@ -28,7 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    'alex85.pythonanywhere.com'
 ]
 
 CORS_ALLOWED_ORIGINS = ['http://localhost:4200']
