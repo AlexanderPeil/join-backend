@@ -17,6 +17,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 from .models import Todo, Category, Contact, Subtask
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 class GuestLoginView(APIView):
@@ -354,7 +356,7 @@ class RegisterView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(ObtainAuthToken):
     """
     API view for user login.
