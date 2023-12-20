@@ -32,7 +32,10 @@ ALLOWED_HOSTS = [
     'Alex85.pythonanywhere.com'
 ]
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:4200']
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:4200',
+    'https://Alex85.pythonanywhere.com'
+    ]
 
 CSRF_TRUSTED_ORIGINS = ['https://Alex85.pythonanywhere.com']
 
