@@ -354,8 +354,8 @@ class RegisterView(APIView):
             user = serializer.save()
             token, created = Token.objects.get_or_create(user=user)
             data = {
-                'user': serializer.data, 
-                'token': token.key
+                "user": serializer.data, 
+                "token": token.key
             }
             return Response(data, status=status.HTTP_201_CREATED)
         else:
