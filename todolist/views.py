@@ -349,17 +349,17 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         if User.objects.filter(email=request.data["email"]).exists():
             return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if serializer.is_valid():
-            user = serializer.save()
-            token, created = Token.objects.get_or_create(user=user)
-            data = {
-                "user": serializer.data, 
-                "token": token.key
-            }
-            return Response(data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer.is_valid(raise_exception=True)
+        
+        user = serializer.save()
+        token = Token.objects.get_or_create(user=user)
+        
+        data = {
+            "user": serializer.data, 
+            "token": token.key
+        }
+        return Response(data, status=status.HTTP_201_CREATED)
 
         
 class LoginView(ObtainAuthToken):
@@ -382,7 +382,7 @@ class LoginView(ObtainAuthToken):
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        token, created = Token.objects.get_or_create(user=user)
+        token = Token.objects.get_or_create(user=user)
         return Response({"token": token.key, "user_id": user.pk, "email": user.email})
 
 
