@@ -43,7 +43,6 @@ tasks_router.register(r'subtasks', SubtaskViewSet, basename='subtask')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('guest-login/', GuestLoginView.as_view(), name='guest-login'),
     path('user-info/', LoggedUserView.as_view(), name='logged-user-info'),
