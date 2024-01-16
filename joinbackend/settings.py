@@ -34,7 +34,8 @@ ALLOWED_HOSTS = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
-    'https://Alex85.pythonanywhere.com'
+    'https://Alex85.pythonanywhere.com',
+    'https://join.alexander-peil.de'
     ]
 
 CSRF_TRUSTED_ORIGINS = ['https://Alex85.pythonanywhere.com']
