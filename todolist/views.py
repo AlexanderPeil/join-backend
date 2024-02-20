@@ -107,12 +107,6 @@ class TodoViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
-        if instance.user != request.user:
-            return Response(
-                {"detail": "You do not have permission to edit this task."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
         non_nested_data = {key: value for key, value in request.data.items() if key not in ['category', 'assigned_to', 'subtasks']}
         serializer = self.get_serializer(instance, data=non_nested_data, partial=partial)
         serializer.is_valid(raise_exception=True)
