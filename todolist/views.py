@@ -1,3 +1,5 @@
+from random import randint
+import uuid
 from django.shortcuts import get_object_or_404, render
 from .serializers import (
     TodoSerializer,
@@ -43,13 +45,10 @@ class GuestLoginView(APIView):
       application's requirements, you might need a more sophisticated approach.
     """
     def post(self, request):
-        guest_username = 'guest'
+        random_number = randint(1000, 9999)  
+        guest_username = f'guest_{random_number}'
 
-        try:
-            guest_user = User.objects.get(username=guest_username)
-        except User.DoesNotExist:
-            guest_user = User.objects.create_user(username=guest_username, password='guest_password')
-
+        guest_user = User.objects.create_user(username=guest_username, password=uuid.uuid4().hex)
         token, created = Token.objects.get_or_create(user=guest_user)
 
         return Response({
@@ -57,32 +56,6 @@ class GuestLoginView(APIView):
             "user_id": guest_user.pk,
             "email": guest_user.email
         })
-
-
-class ReadOnlyGuestPermission(permissions.BasePermission):
-    """
-    Custom permission class for read-only access for guest users.
-
-    This permission class is used to restrict the actions that guest users can perform.
-    Guest users are identified by the username 'guest' and are only allowed to perform
-    'safe' HTTP methods (GET, HEAD, OPTIONS). This ensures that guest users can only
-    read data and are not allowed to modify it.
-
-    Methods:
-    - has_permission: Determines whether the request should be granted permission.
-      If the user is a guest user (username 'guest'), it checks if the request method
-      is a safe method. If so, permission is granted. Otherwise, it's denied.
-      For all other users, permission is granted by default.
-
-    Note:
-    - This permission class should be used in views where guest users are allowed access
-      but should be restricted to read-only operations.
-    """
-    
-    def has_permission(self, request, view):
-        if request.user.username == 'guest':
-            return request.method in permissions.SAFE_METHODS
-        return True
 
 
 class TodoViewSet(viewsets.ModelViewSet):
@@ -95,7 +68,7 @@ class TodoViewSet(viewsets.ModelViewSet):
 
     Authentication and Permissions:
     - Authentication: TokenAuthentication is used to authenticate users.
-    - Permissions: IsAuthenticated and ReadOnlyGuestPermission are applied for permission checks.
+    - Permissions: IsAuthenticated is applied for permission checks.
 
     Serializer Class:
     - TodoSerializer is used for serialization and deserialization of Todo instances.
@@ -114,7 +87,7 @@ class TodoViewSet(viewsets.ModelViewSet):
     - In 'destroy' method, it's ensured that only the owner of a Todo can delete it.
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
+    permission_classes = [IsAuthenticated]
     serializer_class = TodoSerializer
 
     def get_queryset(self):
@@ -193,7 +166,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     Authentication and Permissions:
     - Authentication: Uses TokenAuthentication to authenticate users.
-    - Permissions: Applies IsAuthenticated and ReadOnlyGuestPermission to ensure proper access control.
+    - Permissions: Applies IsAuthenticated to ensure proper access control.
 
     Serializer Class:
     - Uses CategorySerializer for serialization and deserialization of Category instances.
@@ -204,7 +177,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
+    permission_classes = [IsAuthenticated]
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
@@ -225,7 +198,7 @@ class ContactViewSet(viewsets.ModelViewSet):
 
     Authentication and Permissions:
     - Authentication: Uses TokenAuthentication for user authentication.
-    - Permissions: IsAuthenticated and ReadOnlyGuestPermission are used to control access.
+    - Permissions: IsAuthenticated is used to control access.
 
     Serializer Class:
     - Utilizes ContactSerializer for serialization and deserialization of Contact instances.
@@ -238,7 +211,7 @@ class ContactViewSet(viewsets.ModelViewSet):
 
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
+    permission_classes = [IsAuthenticated]
     serializer_class = ContactSerializer
     queryset = Contact.objects.all()
 
@@ -274,7 +247,7 @@ class SubtaskViewSet(viewsets.ModelViewSet):
 
     Authentication and Permissions:
     - Authentication: Uses TokenAuthentication for authenticating users.
-    - Permissions: IsAuthenticated and ReadOnlyGuestPermission are applied for access control.
+    - Permissions: IsAuthenticated is applied for access control.
 
     Serializer Class:
     - Utilizes SubtaskSerializer for serialization and deserialization of Subtask instances.
@@ -287,7 +260,7 @@ class SubtaskViewSet(viewsets.ModelViewSet):
 
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, ReadOnlyGuestPermission]
+    permission_classes = [IsAuthenticated]
     serializer_class = SubtaskSerializer
     queryset = Subtask.objects.all()
 

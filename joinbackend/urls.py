@@ -32,6 +32,9 @@ from todolist.views import (
     GuestLoginView
 )
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 
 router = DefaultRouter()
 router.register(r'tasks', TodoViewSet, basename='task')
@@ -51,4 +54,5 @@ urlpatterns = [
     path('', include(router.urls)),  
     path('', include(tasks_router.urls)),  
     re_path(r'^.*$', TemplateView.as_view(template_name='index.html'), name='home'),
+    path('sentry-debug/', trigger_error),
 ]
