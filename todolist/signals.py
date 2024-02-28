@@ -4,8 +4,6 @@ from django.conf import settings
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from dotenv import load_dotenv
-load_dotenv()
 
 
 @receiver(reset_password_token_created)
