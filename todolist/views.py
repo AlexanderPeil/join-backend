@@ -1,14 +1,18 @@
 from random import randint
 import uuid
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from .serializers import (
     TodoSerializer,
     UserSerializer,
     CategorySerializer,
     SubtaskSerializer,
     ContactSerializer,
-    TodoDetailSerializer
+    TodoDetailSerializer,
+    ResetPasswordSerializer
 )
+from .models import Todo, Category, Contact, Subtask
+from django.contrib.auth.tokens import default_token_generator
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets
@@ -18,9 +22,7 @@ from rest_framework.authentication import TokenAuthentication, BasicAuthenticati
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions
 from rest_framework.authtoken.models import Token
-from .models import Todo, Category, Contact, Subtask
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+
 
 
 class GuestLoginView(APIView):
@@ -400,3 +402,35 @@ class LoggedUserView(APIView):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
     
+
+class ResetPasswordView(APIView):
+
+    """
+    API view for retrieving the currently logged-in user's details.
+
+    This view is used to obtain information about the user that is currently authenticated. 
+    It supports both Basic and Token authentication methods.
+
+    Authentication and Permissions:
+    - Authentication: Supports both BasicAuthentication and TokenAuthentication.
+    - Permissions: IsAuthenticated to ensure only authenticated users can access this view.
+
+    Methods:
+    - get: Handles GET requests. It serializes the currently authenticated user's data
+      using the UserSerializer and returns this data in the response.
+    
+    """
+    def post(self, request, *args, **kwargs):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            try:
+                user = User.objects.get(email=data['email'])
+                if default_token_generator.check_token(user, data['token']):
+                    user.set_password(data['password'])
+                    user.save()
+                    return Response({'message': 'Successfully reset password.'})
+                return Response({'error': 'Invalid Token.'}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

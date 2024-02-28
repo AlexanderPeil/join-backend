@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Todo, Category, Contact, Subtask
+from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -137,12 +138,23 @@ class TodoSerializer(serializers.ModelSerializer):
 
 class TodoDetailSerializer(serializers.ModelSerializer):
     """
-    Serializer for detailed representation of Todo model instances.
+    API view for resetting a user's password.
 
-    This serializer is used for detailed serialization of Todo instances, including
-    nested serialization for related models. It includes the 'category', 'assigned_to',
-    and 'subtasks' fields, each using their respective serializers for detailed information.
-    
+    This view handles the password reset functionality. It allows users to reset their password by providing a valid token received via email (or other means). The process ensures that only users with valid reset tokens can change their password, enhancing security.
+
+    Authentication and Permissions:
+    - Authentication: None required for accessing this view, as it's meant for users who cannot log in due to a forgotten password.
+    - Permissions: None required, as the action does not access any user-specific data that requires authentication.
+
+    Methods:
+    - post: Handles POST requests. It expects a payload containing 'email', 'token', and 'password' fields. The method validates the provided data, checks the reset token's validity, and if valid, resets the user's password to the new value. Responses vary based on the operation outcome:
+        - Success: Returns a response with a message indicating the password has been successfully reset.
+        - Invalid Token: Returns a 400 Bad Request response if the token is invalid.
+        - User Not Found: Returns a 404 Not Found response if no user is associated with the provided email.
+        - Validation Errors: Returns a 400 Bad Request response containing the serializer errors if the request data is invalid.
+
+    Usage:
+    To reset a password, send a POST request to this view with a payload containing the user's email, the reset token, and the new password. Ensure the token is valid and associated with the user's email.
     """
     category = CategorySerializer(read_only=True)
     assigned_to = ContactSerializer(many=True, read_only=True)
@@ -152,3 +164,22 @@ class TodoDetailSerializer(serializers.ModelSerializer):
         model = Todo
         fields = '__all__'
 
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password reset data.
+
+    This serializer is used to validate and deserialize the data required for resetting a user's password. It ensures that the necessary fields are included in the request and that they meet the validation criteria set forth for a password reset operation.
+
+    Fields:
+    - token: A CharField that represents the password reset token. This token is typically sent to the user's email address and is required to validate the password reset request. It ensures that the request is authorized.
+    - password: A CharField that represents the new password for the user. This field is used to update the user's password once the token is validated and the request is deemed legitimate.
+
+    Validation:
+    The serializer performs basic validation to ensure that both fields are provided and are not empty. Further validation, such as token validity and password strength, should be handled externally (e.g., in the view).
+
+    Usage:
+    This serializer is intended to be used in password reset views or endpoints where users submit their reset tokens and new passwords. It simplifies the process of validating and deserializing input data, ensuring that only valid and complete requests are processed.
+    """
+    token = serializers.CharField()
+    password = serializers.CharField()

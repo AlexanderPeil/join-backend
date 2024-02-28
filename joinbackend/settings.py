@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 import sentry_sdk
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,9 +25,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
     'https://Alex85.pythonanywhere.com',
     'https://join.alexander-peil.de'
-    ]
+]
 
-CSRF_TRUSTED_ORIGINS = ['https://Alex85.pythonanywhere.com']
 
 # Application definition
 
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework.authtoken',
+    'django_rest_passwordreset',
     'rest_framework',
     'todolist',
     'corsheaders'
@@ -51,7 +53,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -61,9 +63,7 @@ ROOT_URLCONF = 'joinbackend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR.parent, 'join-frontend')
-        ],
+        "DIRS": [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -109,6 +109,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+DEFAULT_FROM_EMAIL = os.environ.get('emailUser')
+FRONTEND_URL = 'http://localhost:4200'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('emailHost') 
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('emailUser') 
+EMAIL_HOST_PASSWORD = os.environ.get('emailPassword')
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -138,3 +149,10 @@ sentry_sdk.init(
     dsn="https://examplePublicKey@o0.ingest.sentry.io/0",
     enable_tracing=True,
 )
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+}
