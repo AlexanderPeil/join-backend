@@ -146,9 +146,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 sentry_sdk.init(
-    dsn="https://examplePublicKey@o0.ingest.sentry.io/0",
-    enable_tracing=True,
+    dsn="https://d95e0538dc8ec38d1c06a4a7fe9e368d@o4506851606724608.ingest.sentry.io/4506851966844928",
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
 )
+
 
 
 REST_FRAMEWORK = {
