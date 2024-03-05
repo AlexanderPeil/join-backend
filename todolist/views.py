@@ -1,6 +1,9 @@
+from datetime import date
 from random import randint
 import uuid
 from django.shortcuts import get_object_or_404
+
+from todolist.guest_tasks import create_predefined_content_for_guest
 from .serializers import (
     TodoSerializer,
     UserSerializer,
@@ -23,6 +26,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions
 from rest_framework.authtoken.models import Token
 
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 class GuestLoginView(APIView):
@@ -46,12 +51,50 @@ class GuestLoginView(APIView):
     - This implementation assumes a simplistic guest user setup. Depending on the
       application's requirements, you might need a more sophisticated approach.
     """
+    @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         random_number = randint(1000, 9999)  
         guest_username = f'guest_{random_number}'
 
         guest_user = User.objects.create_user(username=guest_username, password=uuid.uuid4().hex)
         token, created = Token.objects.get_or_create(user=guest_user)
+
+        # # TODO generate Tasks etc. for Guest User
+        # category = {
+        #     "name" : "IT",
+        #     "color": "#ff8899",
+        # }
+        # category_model = Category.objects.create(user=guest_user, **category)
+
+        # contact1 = {
+        #     "firstname" : "Mihai",
+        #     "lastname": "Neacsu",
+        #     "email": "mihai@dev.com",
+        #     "phone": "+491573333333",
+        #     "color": "#676767"
+        # }
+        # contact1_model = Contact.objects.create(user=guest_user, **contact1)
+        # contact2 = {
+        #     "firstname" : "Peter",
+        #     "lastname": "Meier",
+        #     "email": "mihai@dev.com",
+        #     "phone": "+491573333333",
+        #     "color": "#676767"
+        # }
+        # contact2_model = Contact.objects.create(user=guest_user, **contact2)
+
+        # task = {
+        #     "due_date" : date.today,
+        #     "title" : "Your first Task",
+        #     "description" : "Some Description",
+        #     "status" : "todo",
+        #     "priority": "low",
+        #     "assigned_to" : [contact1_model.pk, contact2_model.pk]
+        # }
+
+        # task_model = Todo.objects.create(user=guest_user, category=category_model, **task)
+
+        create_predefined_content_for_guest(guest_user)
 
         return Response({
             "token": token.key,
