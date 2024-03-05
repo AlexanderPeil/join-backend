@@ -59,41 +59,6 @@ class GuestLoginView(APIView):
         guest_user = User.objects.create_user(username=guest_username, password=uuid.uuid4().hex)
         token, created = Token.objects.get_or_create(user=guest_user)
 
-        # # TODO generate Tasks etc. for Guest User
-        # category = {
-        #     "name" : "IT",
-        #     "color": "#ff8899",
-        # }
-        # category_model = Category.objects.create(user=guest_user, **category)
-
-        # contact1 = {
-        #     "firstname" : "Mihai",
-        #     "lastname": "Neacsu",
-        #     "email": "mihai@dev.com",
-        #     "phone": "+491573333333",
-        #     "color": "#676767"
-        # }
-        # contact1_model = Contact.objects.create(user=guest_user, **contact1)
-        # contact2 = {
-        #     "firstname" : "Peter",
-        #     "lastname": "Meier",
-        #     "email": "mihai@dev.com",
-        #     "phone": "+491573333333",
-        #     "color": "#676767"
-        # }
-        # contact2_model = Contact.objects.create(user=guest_user, **contact2)
-
-        # task = {
-        #     "due_date" : date.today,
-        #     "title" : "Your first Task",
-        #     "description" : "Some Description",
-        #     "status" : "todo",
-        #     "priority": "low",
-        #     "assigned_to" : [contact1_model.pk, contact2_model.pk]
-        # }
-
-        # task_model = Todo.objects.create(user=guest_user, category=category_model, **task)
-
         create_predefined_content_for_guest(guest_user)
 
         return Response({
