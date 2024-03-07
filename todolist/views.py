@@ -28,7 +28,7 @@ from rest_framework.authtoken.models import Token
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-
+from django.http import HttpResponse
 
 class GuestLoginView(APIView):
     """
@@ -442,3 +442,8 @@ class ResetPasswordView(APIView):
             except User.DoesNotExist:
                 return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+def sentry_test_view(request):
+    1 / 0
+    return HttpResponse("Wenn du das siehst, ist etwas schiefgelaufen, der Fehler wurde nicht ausgelöst.")

@@ -1,19 +1,4 @@
-"""
-URL configuration for joinbackend project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+from todolist.views import sentry_test_view
 from django.contrib import admin
 from django.views.generic import TemplateView
 from rest_framework_nested.routers import NestedSimpleRouter
@@ -34,9 +19,6 @@ from todolist.views import (
     GuestLoginView
 )
 
-def trigger_error(request):
-    division_by_zero = 1 / 0
-
 
 router = DefaultRouter()
 router.register(r'tasks', TodoViewSet, basename='task')
@@ -56,5 +38,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('', include(router.urls)),  
     path('', include(tasks_router.urls)),  
-    path('sentry-debug/', trigger_error),
+    path('sentry-test/', sentry_test_view, name='sentry_test'),
 ] 
